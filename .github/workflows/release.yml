@@ -1,13 +1,13 @@
-name: Build & Publish (PyPI Trusted Publishing)
+name: Build & Publish (PyPI)
 
 on:
   push:
     tags:
-      - "v*"
+      - "v*"   # e.g. v0.1.0
 
 permissions:
-  id-token: write
   contents: read
+  id-token: write   # required for Trusted Publishing (OIDC)
 
 jobs:
   build-and-publish:
@@ -31,8 +31,8 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI (Trusted Publisher)
-        uses: pypa/gh-action-pypi-publish
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          print-hash: true
           skip-existing: true
+          print-hash: true
           verbose: true
