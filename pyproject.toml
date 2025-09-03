@@ -1,3 +1,20 @@
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=69", "wheel", "build", "setuptools_scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "runit"
+dynamic = ["version"]
+description = "Execute and profile cli commands"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "NotesOfCliff", email = "notesofcliff@gmail.com" }]
+license = { text = "GPLv3" }
+dependencies = [
+  "psutil",
+  "plotext",
+]
+
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
+local_scheme = "node-and-date"
