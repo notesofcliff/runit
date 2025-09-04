@@ -9,7 +9,7 @@ description = "Execute and profile cli commands"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "NotesOfCliff", email = "notesofcliff@gmail.com" }]
-license = { text = "GPLv3" }
+license = "GPL-3.0-only"
 dependencies = [
   "psutil",
   "plotext",
@@ -21,3 +21,8 @@ local_scheme = "node-and-date"
 
 [project.scripts]
 runit = "runit.cli:run_cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["runit*"]
+exclude = ["assets*", "test*"]
