@@ -1,5 +1,7 @@
 import re
 import logging
+from ast import literal_eval
+
 log = logging.getLogger(__name__)
 
 def strip_ansi(text):
@@ -13,7 +15,7 @@ def extract_memory_rss(memory_info_list):
     for mem in memory_info_list:
         try:
             if isinstance(mem, str):
-                mem = eval(mem)
+                mem = literal_eval(mem)
             rss = getattr(mem, 'rss', None)
             if rss is not None:
                 rss_values.append(rss)
