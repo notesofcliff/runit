@@ -25,7 +25,7 @@ See `runit` in action:
 ![runit demo](assets/runit-demo.gif)
 
 ## Requirements
-* Python 3.12+
+* Python 3.9+
 * psutil
 * plotext
 
