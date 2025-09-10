@@ -17,7 +17,7 @@ dependencies = [
 
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
-local_scheme = "node-and-date"
+local_scheme = "no-local-version"
 
 [project.scripts]
 runit = "runit.cli:run_cli"
