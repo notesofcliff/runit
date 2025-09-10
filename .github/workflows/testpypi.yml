@@ -2,7 +2,10 @@ name: Build & Publish (TestPyPI)
 
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches: [ main ]
 
 permissions:
@@ -13,6 +16,7 @@ jobs:
   build-and-publish-testpypi:
     runs-on: ubuntu-latest
     environment: testpypi
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout

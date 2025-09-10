@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - "v*"   # e.g. v0.1.0
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -13,6 +18,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     environment: release
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout
