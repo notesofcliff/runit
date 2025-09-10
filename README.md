@@ -1,7 +1,6 @@
 # runit
 
-A Python CLI tool to execute, monitor, and profile and visualize commands. 
-
+A Python CLI tool to execute, monitor, and profile and visualize commands.
 
 ## Project Purpose
 
