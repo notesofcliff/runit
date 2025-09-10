@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel", "build", "setuptools_scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "runit"
+name = "profiler-runit"
 dynamic = ["version"]
 description = "Execute and profile cli commands"
 readme = "README.md"
