@@ -34,4 +34,4 @@ def plot_charts(stats):
             plt.ylabel("RSS (MB)")
             plt.show()
         except Exception as e:
-            log.warning(f"Could not plot chart: {e}")
+            log.warning("Could not plot chart: %s", e)

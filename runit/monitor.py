@@ -7,7 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 def _start_proc(command: list):
-    log.info(f"Starting process: {command}")
+    log.info("Starting process: %s", command)
     proc = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -16,7 +16,7 @@ def _start_proc(command: list):
     return proc
 
 def monitor_process(command):
-    log.info(f"Monitoring process: {command}")
+    log.info("Monitoring process: %s", command)
     stats = {
         'start_time': datetime.now(),
         'command': command,
@@ -28,7 +28,7 @@ def monitor_process(command):
     }
     proc = _start_proc(command)
     ps_proc = psutil.Process(proc.pid)
-    log.debug(f"Subprocess started with PID {ps_proc.pid}")
+    log.debug("Subprocess started with PID %s", ps_proc.pid)
 
     stats['pid'] = ps_proc.pid
     try:
@@ -43,7 +43,7 @@ def monitor_process(command):
                 stats['children'].append(children)
                 stats['threads'].append(threads)
                 stats['check_times'].append(datetime.now())
-                log.debug(f"Sampled stats at {stats['check_times'][-1]}, CPU: {cpu_percent}%, Memory: {memory_info.rss} bytes, Children: {len(children)}, Threads: {len(threads)}")
+                log.debug("Sampled stats at %s, CPU: %s%%, Memory: %s bytes, Children: %s, Threads: %s", stats['check_times'][-1], cpu_percent, memory_info.rss, len(children), len(threads))
             except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
                 log.warning("Process ended or became inaccessible during monitoring.")
                 break
@@ -52,8 +52,8 @@ def monitor_process(command):
         stats['stderr'] = proc.stderr.read().decode()
 
     except Exception as e:
-        log.warning(f"Exception during stat collection: {e}")
+        log.warning("Exception during stat collection: %s", e)
     stats['end_time'] = datetime.now()
     stats['duration'] = stats['end_time'] - stats['start_time']
-    log.info(f"Process monitoring complete. Duration: {stats['duration']}")
+    log.info("Process monitoring complete. Duration: %s", stats['duration'])
     return stats

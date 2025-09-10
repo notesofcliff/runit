@@ -9,17 +9,17 @@ def format_report(stats):
     num_threads = extract_num_threads(stats['threads'])
     num_children = extract_num_children(stats['children'])
     report = [
-        f"Command: {stats['command']}",
-        f"PID: {stats.get('pid')}",
-        f"Start Time: {stats['start_time']}",
-        f"End Time: {stats['end_time']}",
-        f"Duration: {stats['duration']}",
-        f"Max RSS (bytes): {max(rss_values) if rss_values else 'N/A'}",
-        f"Max Threads: {max(num_threads) if num_threads else 'N/A'}",
-        f"Max Children: {max(num_children) if num_children else 'N/A'}",
-        f"Samples: {len(stats['check_times'])}",
-        f"\nstdout: \n\n\t{'\n\t'.join(stats['stdout'].splitlines()) if stats['stdout'] else 'N/A'}",
-        f"\nstderr: \n\n\t{'\n\t'.join(stats['stderr'].splitlines()) if stats['stderr'] else 'N/A'}",
+        "Command: {}".format(stats['command']),
+        "PID: {}".format(stats.get('pid')),
+        "Start Time: {}".format(stats['start_time']),
+        "End Time: {}".format(stats['end_time']),
+        "Duration: {}".format(stats['duration']),
+        "Max RSS (bytes): {}".format(max(rss_values) if rss_values else 'N/A'),
+        "Max Threads: {}".format(max(num_threads) if num_threads else 'N/A'),
+        "Max Children: {}".format(max(num_children) if num_children else 'N/A'),
+        "Samples: {}".format(len(stats['check_times'])),
+        "\nstdout: \n\n\t{}".format('\n\t'.join(stats['stdout'].splitlines()) if stats['stdout'] else 'N/A'),
+        "\nstderr: \n\n\t{}".format('\n\t'.join(stats['stderr'].splitlines()) if stats['stderr'] else 'N/A'),
 
     ]
     return "\n=== runit report ===\n" + "\n".join(report)

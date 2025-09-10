@@ -24,7 +24,7 @@ def run_cli():
     if args.out_file:
         buf = StringIO()
         sys.stdout = buf
-        log.info(f"Capturing output to buffer for file: {args.out_file}")
+        log.info("Capturing output to buffer for file: %s", args.out_file)
     stats = monitor_process(args.command)
     report = format_report(stats)
     if args.plot:
@@ -40,7 +40,7 @@ def run_cli():
             file_output = strip_ansi(output)
         with open(args.out_file, 'w', encoding='utf-8') as f:
             f.write(file_output)
-        log.info(f"Wrote output to file: {args.out_file}")
+        log.info("Wrote output to file: %s", args.out_file)
     log.info("runit CLI finished.")
 
 def create_parser():
