@@ -6,7 +6,7 @@ try:
 except ImportError:
     plt = None
 
-def plot_charts(stats):
+def plot_charts(stats, width=80, height=20):
     if plt is None:
         log.warning("plotext is not installed. Skipping plotting.")
         return
@@ -19,6 +19,7 @@ def plot_charts(stats):
             from .utils import extract_memory_rss
             rss = extract_memory_rss(stats['memory_info'])
             plt.clear_figure()
+            plt.plot_size(width=width, height=height)
             plt.subplots(2, 1)
             plt.subplot(1)
             plt.title("CPU % over time")

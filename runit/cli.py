@@ -28,7 +28,7 @@ def run_cli():
     stats = monitor_process(args.command)
     report = format_report(stats)
     if args.plot:
-        plot_charts(stats)
+        plot_charts(stats, args.plot_width, args.plot_height)
     print(report)
     if args.out_file:
         sys.stdout = orig_stdout
@@ -68,6 +68,18 @@ def create_parser():
         '--plot',
         action='store_true',
         help='Show resource usage charts (requires plotext).'
+    )
+    parser.add_argument(
+        '--plot-width',
+        type=int,
+        default=80,
+        help='Set the plot width (default: 80)'
+    )
+    parser.add_argument(
+        '--plot-height',
+        type=int,
+        default=20,
+        help='Set the plot height (default: 20)'
     )
     parser.add_argument(
         'command',
