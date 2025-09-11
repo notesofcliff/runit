@@ -4,6 +4,7 @@ on:
   push:
     branches: [ "**" ]
   pull_request:
+  workflow_call: {}  # Add this line to make it reusable
 
 jobs:
   tests:
