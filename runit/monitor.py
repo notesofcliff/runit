@@ -7,8 +7,8 @@ import threading
 import sys
 
 log = logging.getLogger(__name__)
-STREAM_CHUNK_SIZE = 4096
-THREAD_JOIN_TIMEOUT_SECONDS = 5
+_STREAM_CHUNK_SIZE = 4096
+_THREAD_JOIN_TIMEOUT_SECONDS = 5
 
 def _start_proc(command: list):
     log.info("Starting process: %s", command)
@@ -49,7 +49,10 @@ def monitor_process(command):
             # Fallback for file-like streams that do not implement read1().
             reader = stream.read
         try:
-            for chunk in iter(lambda: reader(STREAM_CHUNK_SIZE), b''):
+            while True:
+                chunk = reader(_STREAM_CHUNK_SIZE)
+                if not chunk:
+                    break
                 chunks.append(chunk)
                 target.buffer.write(chunk)
                 target.flush()
@@ -90,8 +93,8 @@ def monitor_process(command):
                 break
             time.sleep(0.1)
         proc.wait()
-        stdout_thread.join(timeout=THREAD_JOIN_TIMEOUT_SECONDS)
-        stderr_thread.join(timeout=THREAD_JOIN_TIMEOUT_SECONDS)
+        stdout_thread.join(timeout=_THREAD_JOIN_TIMEOUT_SECONDS)
+        stderr_thread.join(timeout=_THREAD_JOIN_TIMEOUT_SECONDS)
         if stdout_thread.is_alive() or stderr_thread.is_alive():
             log.warning("Timed out waiting for stream forwarding threads to finish.")
             for stream in (proc.stdout, proc.stderr):
