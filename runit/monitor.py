@@ -37,6 +37,12 @@ def monitor_process(command):
     stdout_chunks = []
     stderr_chunks = []
 
+    def _safe_close(stream):
+        try:
+            stream.close()
+        except (OSError, ValueError):
+            pass
+
     def _forward_and_capture(stream, target, chunks):
         reader = getattr(stream, 'read1', None)
         if reader is None:
@@ -50,10 +56,7 @@ def monitor_process(command):
         except (OSError, ValueError) as e:
             log.warning("Stream forwarding stopped due to read error: %s", e)
         finally:
-            try:
-                stream.close()
-            except (OSError, ValueError):
-                pass
+            _safe_close(stream)
 
     stdout_thread = threading.Thread(
         target=_forward_and_capture,
@@ -92,10 +95,7 @@ def monitor_process(command):
         if stdout_thread.is_alive() or stderr_thread.is_alive():
             log.warning("Timed out waiting for stream forwarding threads to finish.")
             for stream in (proc.stdout, proc.stderr):
-                try:
-                    stream.close()
-                except (OSError, ValueError):
-                    pass
+                _safe_close(stream)
             stdout_thread.join(timeout=1)
             stderr_thread.join(timeout=1)
         # Preserve undecodable bytes in a visible form without dropping content.
