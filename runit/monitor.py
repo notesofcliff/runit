@@ -7,6 +7,8 @@ import threading
 import sys
 
 log = logging.getLogger(__name__)
+STREAM_CHUNK_SIZE = 4096
+THREAD_JOIN_TIMEOUT_SECONDS = 5
 
 def _start_proc(command: list):
     log.info("Starting process: %s", command)
@@ -38,9 +40,10 @@ def monitor_process(command):
     def _forward_and_capture(stream, target, chunks):
         reader = getattr(stream, 'read1', None)
         if reader is None:
+            # Fallback for file-like streams that do not implement read1().
             reader = stream.read
         try:
-            for chunk in iter(lambda: reader(4096), b''):
+            for chunk in iter(lambda: reader(STREAM_CHUNK_SIZE), b''):
                 chunks.append(chunk)
                 target.buffer.write(chunk)
                 target.flush()
@@ -84,8 +87,8 @@ def monitor_process(command):
                 break
             time.sleep(0.1)
         proc.wait()
-        stdout_thread.join(timeout=5)
-        stderr_thread.join(timeout=5)
+        stdout_thread.join(timeout=THREAD_JOIN_TIMEOUT_SECONDS)
+        stderr_thread.join(timeout=THREAD_JOIN_TIMEOUT_SECONDS)
         if stdout_thread.is_alive() or stderr_thread.is_alive():
             log.warning("Timed out waiting for stream forwarding threads to finish.")
             for stream in (proc.stdout, proc.stderr):
@@ -95,6 +98,7 @@ def monitor_process(command):
                     pass
             stdout_thread.join(timeout=1)
             stderr_thread.join(timeout=1)
+        # Preserve undecodable bytes in a visible form without dropping content.
         stats['stdout'] = b''.join(stdout_chunks).decode(errors='backslashreplace')
         stats['stderr'] = b''.join(stderr_chunks).decode(errors='backslashreplace')
 

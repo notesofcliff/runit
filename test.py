@@ -7,7 +7,6 @@ import time
 
 class TestRunitCLI(unittest.TestCase):
     """Integration tests for the runit CLI command."""
-    MAX_STREAM_DELAY_SECONDS = 1.5
 
     def test_nonexistent_command(self):
         """Fails gracefully when a nonexistent command is run."""
@@ -71,6 +70,7 @@ class TestRunitCLI(unittest.TestCase):
 
     def test_streams_output_in_real_time(self):
         """Streams child output before command completion."""
+        max_stream_delay_seconds = 1.5
         code = 'import time; print("stream-now", flush=True); time.sleep(2); print("done", flush=True)'
         proc = subprocess.Popen(
             ['runit', 'python', '-c', code],
@@ -84,7 +84,7 @@ class TestRunitCLI(unittest.TestCase):
             elapsed = time.monotonic() - start
 
             self.assertEqual(first_line, 'stream-now')
-            self.assertLess(elapsed, self.MAX_STREAM_DELAY_SECONDS)
+            self.assertLess(elapsed, max_stream_delay_seconds)
 
             stdout, stderr = proc.communicate(timeout=10)
             self.assertEqual(proc.returncode, 0, msg=stderr)
