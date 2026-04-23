@@ -3,6 +3,8 @@ import psutil
 from datetime import datetime
 import time
 import logging
+import threading
+import sys
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +32,29 @@ def monitor_process(command):
     ps_proc = psutil.Process(proc.pid)
     log.debug("Subprocess started with PID %s", ps_proc.pid)
 
+    stdout_chunks = []
+    stderr_chunks = []
+
+    def _forward_and_capture(stream, target, chunks):
+        for chunk in iter(lambda: stream.read(4096), b''):
+            chunks.append(chunk)
+            target.buffer.write(chunk)
+            target.flush()
+        stream.close()
+
+    stdout_thread = threading.Thread(
+        target=_forward_and_capture,
+        args=(proc.stdout, sys.stdout, stdout_chunks),
+        daemon=True,
+    )
+    stderr_thread = threading.Thread(
+        target=_forward_and_capture,
+        args=(proc.stderr, sys.stderr, stderr_chunks),
+        daemon=True,
+    )
+    stdout_thread.start()
+    stderr_thread.start()
+
     stats['pid'] = ps_proc.pid
     try:
         while ps_proc.is_running() and not ps_proc.status() == psutil.STATUS_ZOMBIE:
@@ -48,8 +73,11 @@ def monitor_process(command):
                 log.warning("Process ended or became inaccessible during monitoring.")
                 break
             time.sleep(0.1)
-        stats['stdout'] = proc.stdout.read().decode()
-        stats['stderr'] = proc.stderr.read().decode()
+        proc.wait()
+        stdout_thread.join()
+        stderr_thread.join()
+        stats['stdout'] = b''.join(stdout_chunks).decode(errors='replace')
+        stats['stderr'] = b''.join(stderr_chunks).decode(errors='replace')
 
     except Exception as e:
         log.warning("Exception during stat collection: %s", e)

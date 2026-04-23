@@ -3,6 +3,7 @@ import unittest
 import tempfile
 import os
 import re
+import time
 
 class TestRunitCLI(unittest.TestCase):
     """Integration tests for the runit CLI command."""
@@ -66,6 +67,26 @@ class TestRunitCLI(unittest.TestCase):
         self.assertIn('Max Threads:', out)
         self.assertIn('Max Children:', out)
         self.assertIn('Samples:', out)
+
+    def test_streams_output_in_real_time(self):
+        """Streams child output before command completion."""
+        code = 'import time; print("stream-now", flush=True); time.sleep(2); print("done", flush=True)'
+        proc = subprocess.Popen(
+            ['runit', 'python', '-c', code],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        start = time.monotonic()
+        first_line = proc.stdout.readline().strip()
+        elapsed = time.monotonic() - start
+
+        self.assertEqual(first_line, 'stream-now')
+        self.assertLess(elapsed, 1.5)
+
+        stdout, stderr = proc.communicate(timeout=10)
+        self.assertEqual(proc.returncode, 0, msg=stderr)
+        self.assertIn('Command:', stdout)
 
     def test_out_file_and_strip_ansi(self):
         """Checks --out-file and --strip-ansi produce plain text output."""
