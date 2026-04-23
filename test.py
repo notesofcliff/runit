@@ -77,16 +77,21 @@ class TestRunitCLI(unittest.TestCase):
             stderr=subprocess.PIPE,
             text=True,
         )
-        start = time.monotonic()
-        first_line = proc.stdout.readline().strip()
-        elapsed = time.monotonic() - start
+        try:
+            start = time.monotonic()
+            first_line = proc.stdout.readline().strip()
+            elapsed = time.monotonic() - start
 
-        self.assertEqual(first_line, 'stream-now')
-        self.assertLess(elapsed, 1.5)
+            self.assertEqual(first_line, 'stream-now')
+            self.assertLess(elapsed, 1.5)
 
-        stdout, stderr = proc.communicate(timeout=10)
-        self.assertEqual(proc.returncode, 0, msg=stderr)
-        self.assertIn('Command:', stdout)
+            stdout, stderr = proc.communicate(timeout=10)
+            self.assertEqual(proc.returncode, 0, msg=stderr)
+            self.assertIn('Command:', stdout)
+        finally:
+            if proc.poll() is None:
+                proc.terminate()
+                proc.wait(timeout=5)
 
     def test_out_file_and_strip_ansi(self):
         """Checks --out-file and --strip-ansi produce plain text output."""

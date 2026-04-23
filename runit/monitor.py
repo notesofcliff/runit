@@ -36,7 +36,8 @@ def monitor_process(command):
     stderr_chunks = []
 
     def _forward_and_capture(stream, target, chunks):
-        for chunk in iter(lambda: stream.read(4096), b''):
+        reader = stream.read1 if hasattr(stream, 'read1') else stream.read
+        for chunk in iter(lambda: reader(4096), b''):
             chunks.append(chunk)
             target.buffer.write(chunk)
             target.flush()
