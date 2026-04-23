@@ -3,8 +3,12 @@ import psutil
 from datetime import datetime
 import time
 import logging
+import threading
+import sys
 
 log = logging.getLogger(__name__)
+_STREAM_CHUNK_SIZE = 4096
+_THREAD_JOIN_TIMEOUT_SECONDS = 5
 
 def _start_proc(command: list):
     log.info("Starting process: %s", command)
@@ -30,6 +34,46 @@ def monitor_process(command):
     ps_proc = psutil.Process(proc.pid)
     log.debug("Subprocess started with PID %s", ps_proc.pid)
 
+    stdout_chunks = []
+    stderr_chunks = []
+
+    def _safe_close(stream):
+        try:
+            stream.close()
+        except (OSError, ValueError):
+            pass
+
+    def _forward_and_capture(stream, target, chunks):
+        reader = getattr(stream, 'read1', None)
+        if reader is None:
+            # Fallback for file-like streams that do not implement read1().
+            reader = stream.read
+        try:
+            while True:
+                chunk = reader(_STREAM_CHUNK_SIZE)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+                target.buffer.write(chunk)
+                target.flush()
+        except (OSError, ValueError) as e:
+            log.warning("Stream forwarding stopped due to read error: %s", e)
+        finally:
+            _safe_close(stream)
+
+    stdout_thread = threading.Thread(
+        target=_forward_and_capture,
+        args=(proc.stdout, sys.stdout, stdout_chunks),
+        daemon=True,
+    )
+    stderr_thread = threading.Thread(
+        target=_forward_and_capture,
+        args=(proc.stderr, sys.stderr, stderr_chunks),
+        daemon=True,
+    )
+    stdout_thread.start()
+    stderr_thread.start()
+
     stats['pid'] = ps_proc.pid
     try:
         while ps_proc.is_running() and not ps_proc.status() == psutil.STATUS_ZOMBIE:
@@ -48,8 +92,18 @@ def monitor_process(command):
                 log.warning("Process ended or became inaccessible during monitoring.")
                 break
             time.sleep(0.1)
-        stats['stdout'] = proc.stdout.read().decode()
-        stats['stderr'] = proc.stderr.read().decode()
+        proc.wait()
+        stdout_thread.join(timeout=_THREAD_JOIN_TIMEOUT_SECONDS)
+        stderr_thread.join(timeout=_THREAD_JOIN_TIMEOUT_SECONDS)
+        if stdout_thread.is_alive() or stderr_thread.is_alive():
+            log.warning("Timed out waiting for stream forwarding threads to finish.")
+            for stream in (proc.stdout, proc.stderr):
+                _safe_close(stream)
+            stdout_thread.join(timeout=1)
+            stderr_thread.join(timeout=1)
+        # Preserve undecodable bytes in a visible form without dropping content.
+        stats['stdout'] = b''.join(stdout_chunks).decode(errors='backslashreplace')
+        stats['stderr'] = b''.join(stderr_chunks).decode(errors='backslashreplace')
 
     except Exception as e:
         log.warning("Exception during stat collection: %s", e)
