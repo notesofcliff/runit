@@ -5,6 +5,8 @@ import os
 import re
 import time
 
+MAX_FIRST_LINE_DELAY_SECONDS = 1.5
+
 class TestRunitCLI(unittest.TestCase):
     """Integration tests for the runit CLI command."""
 
@@ -83,7 +85,7 @@ class TestRunitCLI(unittest.TestCase):
             elapsed = time.monotonic() - start
 
             self.assertEqual(first_line, 'stream-now')
-            self.assertLess(elapsed, 1.5)
+            self.assertLess(elapsed, MAX_FIRST_LINE_DELAY_SECONDS)
 
             stdout, stderr = proc.communicate(timeout=10)
             self.assertEqual(proc.returncode, 0, msg=stderr)

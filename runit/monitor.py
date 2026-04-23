@@ -36,8 +36,7 @@ def monitor_process(command):
     stderr_chunks = []
 
     def _forward_and_capture(stream, target, chunks):
-        reader = stream.read1 if hasattr(stream, 'read1') else stream.read
-        for chunk in iter(lambda: reader(4096), b''):
+        for chunk in iter(lambda: stream.read1(4096), b''):
             chunks.append(chunk)
             target.buffer.write(chunk)
             target.flush()
@@ -77,8 +76,8 @@ def monitor_process(command):
         proc.wait()
         stdout_thread.join()
         stderr_thread.join()
-        stats['stdout'] = b''.join(stdout_chunks).decode(errors='replace')
-        stats['stderr'] = b''.join(stderr_chunks).decode(errors='replace')
+        stats['stdout'] = b''.join(stdout_chunks).decode(errors='backslashreplace')
+        stats['stderr'] = b''.join(stderr_chunks).decode(errors='backslashreplace')
 
     except Exception as e:
         log.warning("Exception during stat collection: %s", e)
