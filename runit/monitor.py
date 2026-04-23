@@ -36,8 +36,11 @@ def monitor_process(command):
     stderr_chunks = []
 
     def _forward_and_capture(stream, target, chunks):
+        reader = getattr(stream, 'read1', None)
+        if reader is None:
+            reader = stream.read
         try:
-            for chunk in iter(lambda: stream.read1(4096), b''):
+            for chunk in iter(lambda: reader(4096), b''):
                 chunks.append(chunk)
                 target.buffer.write(chunk)
                 target.flush()
@@ -85,6 +88,13 @@ def monitor_process(command):
         stderr_thread.join(timeout=5)
         if stdout_thread.is_alive() or stderr_thread.is_alive():
             log.warning("Timed out waiting for stream forwarding threads to finish.")
+            for stream in (proc.stdout, proc.stderr):
+                try:
+                    stream.close()
+                except (OSError, ValueError):
+                    pass
+            stdout_thread.join(timeout=1)
+            stderr_thread.join(timeout=1)
         stats['stdout'] = b''.join(stdout_chunks).decode(errors='backslashreplace')
         stats['stderr'] = b''.join(stderr_chunks).decode(errors='backslashreplace')
 

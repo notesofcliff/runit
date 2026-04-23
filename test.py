@@ -5,10 +5,9 @@ import os
 import re
 import time
 
-MAX_STREAM_DELAY_SECONDS = 1.5
-
 class TestRunitCLI(unittest.TestCase):
     """Integration tests for the runit CLI command."""
+    MAX_STREAM_DELAY_SECONDS = 1.5
 
     def test_nonexistent_command(self):
         """Fails gracefully when a nonexistent command is run."""
@@ -85,7 +84,7 @@ class TestRunitCLI(unittest.TestCase):
             elapsed = time.monotonic() - start
 
             self.assertEqual(first_line, 'stream-now')
-            self.assertLess(elapsed, MAX_STREAM_DELAY_SECONDS)
+            self.assertLess(elapsed, self.MAX_STREAM_DELAY_SECONDS)
 
             stdout, stderr = proc.communicate(timeout=10)
             self.assertEqual(proc.returncode, 0, msg=stderr)
